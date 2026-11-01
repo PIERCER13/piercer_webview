@@ -14,7 +14,30 @@ local function log(fmt, ...)
     print(TAG .. fmt .. "^0")
 end
 
-local status = { checked = false, blocked = false, reason = nil }
+-- url = Config.url já corrigido · frameBlocked = recusa iframe (cliente usa DUI)
+local status = { checked = false, blocked = false, reason = nil, url = nil, frameBlocked = false }
+
+-- Links conhecidos que têm versão que aceita iframe:
+--   youtube.com/watch?v=ID · youtu.be/ID · youtube.com/shorts/ID → youtube.com/embed/ID
+--   www.google.* (início/busca) → ?igu=1 (o Google libera iframe com isso)
+local function fixUrl(url)
+    if Config.fixUrls == false or type(url) ~= "string" then return url end
+
+    local yt = url:match("^https?://[%w%.]*youtube%.com/watch%?.-v=([%w_%-]+)")
+        or url:match("^https?://youtu%.be/([%w_%-]+)")
+        or url:match("^https?://[%w%.]*youtube%.com/shorts/([%w_%-]+)")
+    if yt then return "https://www.youtube.com/embed/" .. yt end
+
+    local host, rest = url:match("^https?://([^/%?#]+)(.*)$")
+    if host and host:match("^www%.google%.") and not rest:find("igu=", 1, true) then
+        local path = rest:match("^[^%?#]*")
+        if path == "" or path == "/" or path == "/search" or path == "/webhp" then
+            if rest == "" then url = url .. "/" end
+            return url .. (url:find("?", 1, true) and "&" or "?") .. "igu=1"
+        end
+    end
+    return url
+end
 
 local function lowerKeys(headers)
     local out = {}
@@ -35,27 +58,32 @@ local function blockingFrameAncestors(csp)
 end
 
 local function verify()
-    local url = Config.url
-    if Config.warnBlocked == false then return end
+    local url = fixUrl(Config.url)
+    status.url = url
+    if url ~= Config.url then
+        log("link ajustado pra abrir no jogo: %s", url)
+    end
+    -- no modo "auto" a checagem decide iframe x DUI, então roda sempre
+    if Config.warnBlocked == false and (Config.mode == "iframe" or Config.mode == "dui") then return end
     if type(url) ~= "string" or url == "" then return end
 
     -- "linkaqui", "meusite.com" (sem esquema): o iframe trata como caminho
     -- relativo da NUI e não carrega nada. É o erro mais comum.
     if not string.match(url, "^https?://") then
-        status = { checked = true, blocked = true, reason = "Config.url precisa começar com https://" }
+        status = { checked = true, blocked = true, reason = "Config.url precisa começar com https://", url = url, frameBlocked = false }
         log("^3aviso^0: Config.url = \"%s\" não começa com http(s):// — o iframe não carrega", url)
         return
     end
 
     PerformHttpRequest(url, function(code, _, headers)
         if code == 0 then
-            status = { checked = true, blocked = false, reason = nil }
+            status = { checked = true, blocked = false, reason = nil, url = url, frameBlocked = false }
             log("^3aviso^0: não consegui verificar %s (sem resposta da rede)", url)
             return
         end
 
         if code >= 400 then
-            status = { checked = true, blocked = true, reason = ("site respondeu HTTP %d"):format(code) }
+            status = { checked = true, blocked = true, reason = ("site respondeu HTTP %d"):format(code), url = url, frameBlocked = false }
             log("^3aviso^0: %s respondeu HTTP %d", url, code)
             return
         end
@@ -72,13 +100,15 @@ local function verify()
             if list then reason = "CSP frame-ancestors " .. list end
         end
 
-        status = { checked = true, blocked = reason ~= nil, reason = reason }
+        status = { checked = true, blocked = reason ~= nil, reason = reason, url = url, frameBlocked = reason ~= nil }
 
         if reason then
             log("^3aviso^0: %s bloqueia iframe (%s)", url, reason)
-            log("^3aviso^0: a janela abre, mas o site fica em branco — use um site que permita iframe, "
-                .. "ou libere 'Content-Security-Policy: frame-ancestors https://cfx-nui-%s' no site",
-                GetCurrentResourceName())
+            if Config.mode == "iframe" then
+                log("^3aviso^0: com Config.mode = \"iframe\" o site fica em branco — use \"auto\" pra abrir via DUI")
+            else
+                log("abrindo via DUI (mouse e rolagem funcionam; teclado não)")
+            end
         else
             log("^2ok^0: %s aceita iframe", url)
         end
@@ -107,7 +137,14 @@ framezero.RegisterCallback(GetCurrentResourceName()..":open", function(source)
         end
     end
 
-    -- 3º valor: motivo do bloqueio (nil = site ok / não verificado). A NUI usa
-    -- isso pra mostrar o aviso em vez de deixar a tela preta sem explicação.
-    return id, framezero.GetName(source) or "", (status.blocked and status.reason) or nil
+    -- Uma tabela só: versões antigas da bridge entregam apenas o 1º retorno.
+    -- reason: motivo do aviso (nil = site ok / não verificado), pra NUI explicar
+    -- em vez de deixar a tela preta · frameBlocked: o cliente abre via DUI
+    return {
+        id = id,
+        name = framezero.GetName(source) or "",
+        reason = (status.blocked and status.reason) or nil,
+        url = status.url or fixUrl(Config.url),
+        frameBlocked = status.frameBlocked,
+    }
 end)

@@ -1,8 +1,9 @@
-const resource = typeof GetParentResourceName === 'function' ? GetParentResourceName() : 'piercer_browser';
+const resource = typeof GetParentResourceName === 'function' ? GetParentResourceName() : 'piercer_webview';
 const $ = id => document.getElementById(id);
 
 let currentSrc = null;
 let currentId = null;
+let mode = 'iframe';
 
 function post(name, data) {
     fetch(`https://${resource}/${name}`, {
@@ -36,6 +37,85 @@ function copyText(text) {
     return ok;
 }
 
+// ── Modo DUI ─────────────────────────────────────────────────────────────────
+// O client.lua desenha a DUI exatamente onde está o #stage; aqui a gente manda
+// a posição (0..1 da tela) e repassa o mouse em coordenadas 0..1 do #stage.
+
+function sendStage() {
+    if (mode !== 'dui' || $('app').hidden) return;
+    const r = $('stage').getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return;
+    const W = window.innerWidth, H = window.innerHeight;
+    post('duiStage', {
+        x: r.left / W, y: r.top / H, w: r.width / W, h: r.height / H,
+        pw: Math.round(r.width), ph: Math.round(r.height),
+        url: currentSrc,
+    });
+}
+
+function stagePos(e) {
+    const r = $('stage').getBoundingClientRect();
+    return {
+        x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)),
+        y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)),
+    };
+}
+
+const BUTTONS = ['left', 'middle', 'right'];
+let pendingMove = null;
+
+$('stage').addEventListener('mousemove', e => {
+    // junta os movimentos por frame pra não inundar o Lua de fetch
+    const first = !pendingMove;
+    pendingMove = stagePos(e);
+    if (first) requestAnimationFrame(() => {
+        if (pendingMove) post('duiMouse', pendingMove);
+        pendingMove = null;
+    });
+});
+
+const pressed = new Set();
+
+$('stage').addEventListener('mousedown', e => {
+    e.preventDefault();
+    pendingMove = null;
+    pressed.add(e.button);
+    post('duiMouse', { ...stagePos(e), type: 'down', button: BUTTONS[e.button] });
+});
+
+// no documento: soltar o botão fora do #stage (arrastando) também conta
+document.addEventListener('mouseup', e => {
+    if (!pressed.delete(e.button)) return;
+    post('duiMouse', { ...stagePos(e), type: 'up', button: BUTTONS[e.button] });
+});
+
+$('stage').addEventListener('wheel', e => {
+    e.preventDefault();
+    // deltaMode 1 = linhas (≈ 40px cada)
+    const k = e.deltaMode === 1 ? 40 : 1;
+    post('duiWheel', { dy: e.deltaY * k, dx: e.deltaX * k });
+}, { passive: false });
+
+$('stage').addEventListener('contextmenu', e => e.preventDefault());
+
+window.addEventListener('resize', sendStage);
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function showNotice(data) {
+    const dui = mode === 'dui';
+    const show = dui || !!data.blocked;
+    $('blocked').hidden = !show;
+    $('blocked').classList.toggle('info', dui);
+    $('blockedtitle').textContent = dui
+        ? 'Modo compatível: mouse e rolagem funcionam, o teclado não.'
+        : 'Este site não permite ser aberto dentro do jogo.';
+    $('blockedwhy').textContent = !dui && data.blocked ? `(${data.blocked})` : '';
+    $('copyurl').textContent = 'copiar link';
+    // abre no navegador do Windows (função da própria NUI do FiveM)
+    $('openext').hidden = typeof window.invokeNative !== 'function';
+}
+
 function open(data) {
     currentId = String(data.id);
     $('t-main').textContent = data.title || '';
@@ -49,23 +129,36 @@ function open(data) {
     $('copied').textContent = 'copiar';
     $('copied').className = '';
 
-    // O servidor já sabe (preflight) se o site recusa iframe — avisa em vez
-    // de deixar o jogador olhando pra uma tela preta.
-    $('blocked').hidden = !data.blocked;
-    $('blockedwhy').textContent = data.blocked ? `(${data.blocked})` : '';
-    $('copyurl').textContent = 'copiar link';
-
+    mode = data.mode === 'dui' ? 'dui' : 'iframe';
     const src = buildSrc(data);
-    const changed = src !== currentSrc;
-    currentSrc = src;
-    if (changed) $('frame').src = src;
+
+    if (mode === 'dui') {
+        // a DUI é recriada a cada abertura (o Lua destrói ao fechar)
+        currentSrc = src;
+        $('frame').hidden = true;
+        $('frame').src = 'about:blank';
+    } else {
+        $('frame').hidden = false;
+        const changed = src !== currentSrc || $('frame').src === 'about:blank';
+        currentSrc = src;
+        if (changed) $('frame').src = src;
+    }
+    $('stage').hidden = mode !== 'dui';
+    $('app').classList.toggle('dui', mode === 'dui');
+
+    showNotice(data);
 
     $('app').hidden = false;
     $('close').focus();
+
+    // a janela entra com animação de escala: mede o #stage só depois dela
+    if (mode === 'dui') setTimeout(sendStage, 220);
 }
 
 function close() {
     $('app').hidden = true;
+    pendingMove = null;
+    pressed.clear();
 }
 
 function requestClose() {
@@ -89,12 +182,17 @@ document.addEventListener('keydown', e => {
 $('close').onclick = requestClose;
 
 $('reload').onclick = () => {
-    if (currentSrc) $('frame').src = currentSrc;
+    if (mode === 'dui') post('duiReload');
+    else if (currentSrc) $('frame').src = currentSrc;
 };
 
 $('copyurl').onclick = () => {
     if (!currentSrc) return;
     $('copyurl').textContent = copyText(currentSrc) ? 'copiado!' : 'copiar link';
+};
+
+$('openext').onclick = () => {
+    if (currentSrc && typeof window.invokeNative === 'function') window.invokeNative('openUrl', currentSrc);
 };
 
 $('copy').onclick = () => {

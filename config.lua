@@ -4,17 +4,30 @@ Config = {}
 -- Pra reaproveitar em outro site: copie a pasta, renomeie e
 -- troque só os campos abaixo.
 
-Config.url = "linkaqui"
+Config.url = "https://www.netlify.com/"
 Config.command = "comandoaqui"
 
 -- tecla padrão (o jogador pode trocar em Configurações > Teclas > FiveM). "" = sem tecla
 Config.key = ""
 
--- Avisa quando o site não deixa ser aberto dentro do jogo.
--- A NUI é um Chromium: sites com X-Frame-Options ou CSP frame-ancestors
--- (Google, YouTube normal, GitBook, Instagram, bancos…) ficam em branco.
--- Com isso ligado, o resource faz um GET em Config.url ao iniciar, avisa no
--- console do servidor e mostra na janela "copiar link" em vez de tela preta.
+-- Como o site é exibido:
+--   "auto"   → iframe; se o site bloquear iframe (X-Frame-Options / CSP
+--              frame-ancestors: YouTube, GitBook, Instagram…) abre via DUI
+--   "iframe" → sempre iframe (sites que bloqueiam ficam em branco)
+--   "dui"    → sempre DUI
+-- DUI = navegador separado desenhado pelo jogo: abre qualquer site, mouse e
+-- rolagem funcionam, mas o TECLADO NÃO (o FiveM não repassa teclas pra DUI).
+-- Pra sites onde precisa digitar, a janela mostra "abrir no navegador".
+Config.mode = "auto"
+
+-- Ajusta links conhecidos pra versão que abre em iframe (com teclado):
+-- youtube.com/watch?v=ID, youtu.be/ID, /shorts/ID → youtube.com/embed/ID
+-- www.google.com (início/busca) → ?igu=1
+Config.fixUrls = true
+
+-- Ao iniciar, faz um GET em Config.url, avisa no console do servidor quando o
+-- site bloqueia iframe e mostra o motivo na janela. No modo "auto" a checagem
+-- roda mesmo com isso desligado (é ela que decide iframe x DUI).
 Config.warnBlocked = true
 
 -- quem pode abrir. Vazio = todo mundo

@@ -26,12 +26,17 @@
             </header>
             <div id="blocked" class="blocked" hidden>
                 <span class="blocked-text">
-                    <strong>Este site não permite ser aberto dentro do jogo.</strong>
+                    <strong id="blockedtitle"></strong>
                     <span id="blockedwhy"></span>
                 </span>
-                <button id="copyurl" class="chip">copiar link</button>
+                <span class="blocked-actions">
+                    <button id="openext" class="chip" hidden>abrir no navegador</button>
+                    <button id="copyurl" class="chip">copiar link</button>
+                </span>
             </div>
             <iframe id="frame" allow="clipboard-write; autoplay"></iframe>
+            <!-- modo DUI: buraco transparente; o client.lua desenha o site aqui embaixo -->
+            <div id="stage" hidden></div>
         </div>
     </div>
     <script src="script.js"></script>

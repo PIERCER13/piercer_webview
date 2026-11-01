@@ -34,13 +34,13 @@ Quando termina, aperta **ESC** e volta a jogar na hora.
 | 🛡️ Painel da staff | `/painel` só abre para quem tem permissão de admin |
 | 📖 Regras / wiki | `/regras` abre as regras do servidor pra qualquer um |
 | 🏆 Ranking / estatísticas | `/ranking` com uma tecla de atalho (ex.: `F7`) |
-| 🗺️ Mapa, rádio, cardápio, catálogo… | Qualquer página que tenha link e permita iframe |
+| 🗺️ Mapa, rádio, cardápio, catálogo… | Qualquer página que tenha link (as que bloqueiam iframe abrem via DUI) |
 
 ## 🔧 Como funciona
 
 1. **O jogador abre**: digita o comando configurado (ex.: `/loja`) ou aperta a tecla de atalho.
 2. **O servidor confere**: pela [framezero_bridge](https://github.com/PIERCER13/framezero_bridge), o `server.lua` pega o **ID do personagem** no seu framework e, se você configurou `Config.perms`, verifica se ele tem alguma das permissões. Se não tiver, aparece a notificação de acesso negado e nada abre.
-3. **A janela aparece**: o `client.lua` libera o mouse (`SetNuiFocus`) e manda a interface (NUI) abrir. A NUI carrega o seu site dentro de um **iframe**, com o título, a cor e o ID que você configurou.
+3. **A janela aparece**: o `client.lua` libera o mouse (`SetNuiFocus`) e manda a interface (NUI) abrir. A NUI carrega o seu site dentro de um **iframe**, com o título, a cor e o ID que você configurou. Se o site não aceita iframe, ele é aberto via **DUI** no mesmo lugar (veja [Sites que bloqueiam iframe](#-sites-que-bloqueiam-iframe-modo-dui)).
 4. **(Opcional) O site recebe os dados**: com `Config.sendParams = true`, o link é aberto como `seusite.com/?id=123&nome=Fulano`, e o site pode usar isso para preencher campos automaticamente.
 5. **O jogador fecha**: ESC ou o botão ✕ fecham a janela e devolvem o controle ao jogo. Ao reabrir, a página **continua de onde parou** (não perde login nem scroll). Para atualizar, é só clicar em ↻.
 
@@ -49,6 +49,8 @@ Quando termina, aperta **ESC** e volta a jogar na hora.
 ## ✨ O que ele faz
 
 - 🖥️ **Abre um site em uma janela** dentro do jogo (iframe com NUI), com fundo escurecido e animação de entrada.
+- 🛟 **Abre até site que bloqueia iframe** (YouTube, GitBook, Google…): detecta o bloqueio ao iniciar e cai pro modo **DUI** sozinho.
+- 🔗 **Corrige links conhecidos**: YouTube vira `/embed/` e Google ganha `igu=1`, pra abrir em iframe com teclado.
 - 🧩 **Multi-framework**: ESX, QBCore, Qbox, vRP, vRPex, Creative ou standalone, sem mudar uma linha de código.
 - ⌨️ **Comando e tecla configuráveis**: o jogador ainda pode trocar a tecla em *Configurações › Teclas › FiveM*.
 - 🔒 **Restrição por permissão**: deixe aberto pra todos ou só pra `admin`, `police`, `vip`…
@@ -68,9 +70,9 @@ Quando termina, aperta **ESC** e volta a jogar na hora.
 ## 🚀 Instalação
 
 1. Instale a **framezero_bridge** em `resources/`. A pasta precisa se chamar exatamente `framezero_bridge`.
-2. Baixe este repositório (**Code › Download ZIP**) ou clone já na pasta com o nome certo:
+2. Baixe este repositório (**Code › Download ZIP**) ou clone:
    ```bash
-   git clone https://github.com/PIERCER13/piercer_browser.git piercer_webview
+   git clone https://github.com/PIERCER13/piercer_webview.git
    ```
 3. Coloque a pasta `piercer_webview` em `resources/` do seu servidor.
 4. Edite o [`config.lua`](config.lua) (pelo menos `Config.url` e `Config.command`).
@@ -91,6 +93,8 @@ Tudo fica no [`config.lua`](config.lua):
 | `Config.url` | `string` | — | Endereço do site que será aberto (com `https://`) |
 | `Config.command` | `string` | — | Comando para abrir, **sem a barra** (ex.: `"loja"` → `/loja`) |
 | `Config.key` | `string` | `""` | Tecla padrão (ex.: `"F7"`). `""` = sem tecla |
+| `Config.mode` | `string` | `"auto"` | `"auto"` (iframe, e DUI se o site bloquear iframe), `"iframe"` ou `"dui"` |
+| `Config.fixUrls` | `boolean` | `true` | Converte links do YouTube pra `/embed/` e adiciona `igu=1` no Google |
 | `Config.warnBlocked` | `boolean` | `true` | Avisa no console e na janela quando o site bloqueia iframe |
 | `Config.perms` | `table` | `{}` | Quem pode abrir (veja a tabela abaixo). Vazio = todo mundo |
 | `Config.title` | `string` | `""` | Texto do título no topo da janela |
@@ -166,6 +170,25 @@ Não precisa mexer em nenhum outro arquivo: o nome do resource é detectado auto
 
 > ⚠️ Cada cópia precisa de um `Config.command` diferente.
 
+## 🛟 Sites que bloqueiam iframe (modo DUI)
+
+Alguns sites recusam ser exibidos dentro de iframes (cabeçalho `X-Frame-Options` ou `Content-Security-Policy: frame-ancestors`):
+YouTube (página normal), GitBook, Instagram, bancos… Na NUI isso vira uma tela preta, e nenhum atributo de `<iframe>` contorna.
+
+Com `Config.mode = "auto"` (padrão), o `server.lua` faz um GET em `Config.url` ao iniciar e descobre se o site bloqueia.
+Se bloquear, o site abre via **DUI**: um navegador separado, desenhado pelo jogo exatamente onde fica a janela, que não sofre esse bloqueio.
+
+| | iframe | DUI |
+|---|---|---|
+| Abre qualquer site | ❌ só os que permitem iframe | ✅ |
+| Mouse e rolagem | ✅ | ✅ |
+| Teclado | ✅ | ❌ limitação do FiveM |
+| Mantém a página ao reabrir | ✅ | ❌ recarrega (a DUI é destruída ao fechar pra não gastar FPS) |
+
+No modo DUI a janela mostra um aviso com **abrir no navegador** e **copiar link**, pra quando o jogador precisar digitar.
+
+> 💡 Antes de cair pra DUI, o `Config.fixUrls` tenta a versão do link que aceita iframe: `youtube.com/watch?v=ID`, `youtu.be/ID` e `/shorts/ID` viram `youtube.com/embed/ID`, e a página inicial/busca do Google ganha `?igu=1`.
+
 ## 🔗 Integrando com o seu site
 
 Com `Config.sendParams = true`, o site é aberto assim:
@@ -192,8 +215,8 @@ const nome = params.get('nome');
 piercer_webview/
 ├── fxmanifest.lua   # manifesto do resource (depende da framezero_bridge)
 ├── config.lua       # ⭐ o único arquivo que você precisa editar
-├── client.lua       # comando, tecla, foco da NUI
-├── server.lua       # permissão + ID/nome + preflight do site (iframe)
+├── client.lua       # comando, tecla, foco da NUI e desenho da DUI
+├── server.lua       # permissão + ID/nome + preflight do site (iframe x DUI)
 └── nui/
     ├── index.html   # janela do navegador
     ├── script.js    # lógica da interface
@@ -209,12 +232,13 @@ Jogador digita /comando
 client.lua ──framezero.TriggerCallback──▶ server.lua
                                             ├─ framezero.GetPlayerId
                                             ├─ framezero.HasPermission (Config.perms)
-                                            └─ devolve id + nome
+                                            └─ devolve { id, nome, url, frameBlocked }
         │
         ▼
-SendNUIMessage("open") ──▶ nui/ abre o iframe com Config.url
+SendNUIMessage("open") ──▶ iframe com Config.url
+        │                  └─ ou, se o site bloqueia iframe: CreateDui + DrawSprite no #stage
         │
-   ESC / ✕ ──▶ callback "close" ──▶ SetNuiFocus(false)
+   ESC / ✕ ──▶ callback "close" ──▶ DestroyDui + SetNuiFocus(false)
 ```
 
 ## ❓ Problemas comuns
@@ -231,14 +255,16 @@ A bridge precisa estar rodando antes do resource. Confira se:
 <summary><b>A janela abre mas o site fica em branco / "recusou a conexão"</b></summary>
 
 O site recusa ser exibido dentro de iframes (cabeçalho `X-Frame-Options` ou `Content-Security-Policy: frame-ancestors`).
-Isso acontece com Google, YouTube (página normal), GitBook, Instagram, bancos, etc., e não é bug do resource:
-quem decide é o servidor do site, e nenhum atributo de `<iframe>` contorna isso.
+Isso não é bug do resource: quem decide é o servidor do site.
 
-Com `Config.warnBlocked` ligado (padrão), o resource descobre isso ao iniciar: o console do servidor mostra
-`[piercer_webview] aviso: https://site.com bloqueia iframe (X-Frame-Options: SAMEORIGIN)` e a janela exibe o
-motivo com um botão **copiar link** — em vez de tela preta sem explicação.
+- Com `Config.mode = "auto"` (padrão) isso já é resolvido sozinho: o console mostra
+  `[piercer_webview] aviso: https://site.com bloqueia iframe (X-Frame-Options: SAMEORIGIN)` e o site abre via
+  **DUI** (veja [Sites que bloqueiam iframe](#-sites-que-bloqueiam-iframe-modo-dui)).
+- Com `Config.mode = "iframe"` o site fica em branco; a janela mostra o motivo com um botão **copiar link**.
+- Se o console diz `não consegui verificar`, o servidor não alcançou o site na inicialização; o modo `"auto"`
+  tenta iframe. Se ficar preto, use `Config.mode = "dui"`.
 
-Se o site for seu, libere o iframe nos cabeçalhos:
+Se o site for seu e você precisa de **teclado**, libere o iframe nos cabeçalhos:
 
 ```
 Content-Security-Policy: frame-ancestors 'self' https://cfx-nui-piercer_webview
@@ -247,7 +273,14 @@ Content-Security-Policy: frame-ancestors 'self' https://cfx-nui-piercer_webview
 e **remova** o `X-Frame-Options` (o `ALLOW-FROM` não funciona mais no Chrome). O host `cfx-nui-<pasta>` segue o
 nome da pasta do resource: se você renomear a pasta, ajuste o valor aqui.
 
-> Dica: para vídeos do YouTube use o link de *embed* (`https://www.youtube.com/embed/ID`).
+</details>
+
+<details>
+<summary><b>No modo DUI o teclado não funciona</b></summary>
+
+É limitação do FiveM: ele repassa mouse e rolagem pra DUI, mas não teclas. Pra páginas onde o jogador precisa
+digitar (login, formulário), use o botão **abrir no navegador** do aviso, ou libere o iframe no seu site
+(pergunta acima) pra ele abrir em iframe.
 </details>
 
 <details>
