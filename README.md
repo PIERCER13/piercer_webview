@@ -281,6 +281,6 @@ Só mantenha o aviso de copyright. Veja [LICENSE](LICENSE).
 
 <div align="center">
 
-Feito com ☕ por **[PIERCER13](https://github.com/PIERCER13)** · Discord **@piercer** · [discord.gg/jZ3vTmdjU7](https://discord.gg/jZ3vTmdjU7)
+**[PIERCER13](https://github.com/PIERCER13)** · Discord **@piercer** · [discord.gg/jZ3vTmdjU7](https://discord.gg/jZ3vTmdjU7)
 
 </div>
