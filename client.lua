@@ -9,17 +9,22 @@ end
 RegisterCommand(Config.command, function()
     if opened then return end
     opened = true
-    local id, name = framezero.TriggerCallback(GetCurrentResourceName()..":open", 10000)
+
+    -- 3º retorno: motivo quando o site bloqueia iframe (X-Frame-Options /
+    -- CSP frame-ancestors). nil = site ok ou ainda não verificado.
+    local id, name, blocked = framezero.TriggerCallback(GetCurrentResourceName()..":open", 10000)
     if not id then
         opened = false
         return
     end
+
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = "open",
         url = Config.url,
         id = id,
         name = name,
+        blocked = blocked,
         title = Config.title,
         highlight = Config.highlight,
         color = Config.color,

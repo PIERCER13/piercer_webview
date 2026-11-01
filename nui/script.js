@@ -14,10 +14,26 @@ function post(name, data) {
 
 function buildSrc(data) {
     if (!data.sendParams) return data.url;
-    const u = new URL(data.url);
-    u.searchParams.set('id', data.id);
-    if (data.name) u.searchParams.set('nome', data.name);
-    return u.toString();
+    try {
+        const u = new URL(data.url);
+        u.searchParams.set('id', data.id);
+        if (data.name) u.searchParams.set('nome', data.name);
+        return u.toString();
+    } catch (err) {
+        // URL relativa/inválida (ex.: Config.url sem https://): usa como veio
+        return data.url;
+    }
+}
+
+function copyText(text) {
+    const t = document.createElement('textarea');
+    t.value = text;
+    document.body.appendChild(t);
+    t.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (err) {}
+    t.remove();
+    return ok;
 }
 
 function open(data) {
@@ -33,11 +49,17 @@ function open(data) {
     $('copied').textContent = 'copiar';
     $('copied').className = '';
 
+    // O servidor já sabe (preflight) se o site recusa iframe — avisa em vez
+    // de deixar o jogador olhando pra uma tela preta.
+    $('blocked').hidden = !data.blocked;
+    $('blockedwhy').textContent = data.blocked ? `(${data.blocked})` : '';
+    $('copyurl').textContent = 'copiar link';
+
     const src = buildSrc(data);
-    if (src !== currentSrc) {
-        currentSrc = src;
-        $('frame').src = src;
-    }
+    const changed = src !== currentSrc;
+    currentSrc = src;
+    if (changed) $('frame').src = src;
+
     $('app').hidden = false;
     $('close').focus();
 }
@@ -70,15 +92,14 @@ $('reload').onclick = () => {
     if (currentSrc) $('frame').src = currentSrc;
 };
 
+$('copyurl').onclick = () => {
+    if (!currentSrc) return;
+    $('copyurl').textContent = copyText(currentSrc) ? 'copiado!' : 'copiar link';
+};
+
 $('copy').onclick = () => {
     if (!currentId) return;
-    const t = document.createElement('textarea');
-    t.value = currentId;
-    document.body.appendChild(t);
-    t.select();
-    let ok = false;
-    try { ok = document.execCommand('copy'); } catch (err) {}
-    t.remove();
+    const ok = copyText(currentId);
     $('copied').textContent = ok ? 'copiado!' : 'copiar';
     $('copied').className = ok ? 'ok' : '';
 };
