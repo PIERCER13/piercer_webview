@@ -7,6 +7,13 @@
 -- entende o motivo. Aqui a gente faz um GET em Config.url na inicialização,
 -- avisa no console e manda o motivo pra NUI mostrar um aviso com "copiar link".
 
+-- Log próprio: framezero.Log é interno da bridge, não existe na API exportada.
+local TAG = "^3[" .. GetCurrentResourceName() .. "]^0 "
+local function log(fmt, ...)
+    if select("#", ...) > 0 then fmt = fmt:format(...) end
+    print(TAG .. fmt .. "^0")
+end
+
 local status = { checked = false, blocked = false, reason = nil }
 
 local function lowerKeys(headers)
@@ -36,20 +43,20 @@ local function verify()
     -- relativo da NUI e não carrega nada. É o erro mais comum.
     if not string.match(url, "^https?://") then
         status = { checked = true, blocked = true, reason = "Config.url precisa começar com https://" }
-        framezero.Log("warn", "Config.url = \"%s\" não começa com http(s):// — o iframe não carrega", url)
+        log("^3aviso^0: Config.url = \"%s\" não começa com http(s):// — o iframe não carrega", url)
         return
     end
 
     PerformHttpRequest(url, function(code, _, headers)
         if code == 0 then
             status = { checked = true, blocked = false, reason = nil }
-            framezero.Log("warn", "não consegui verificar %s (sem resposta da rede)", url)
+            log("^3aviso^0: não consegui verificar %s (sem resposta da rede)", url)
             return
         end
 
         if code >= 400 then
             status = { checked = true, blocked = true, reason = ("site respondeu HTTP %d"):format(code) }
-            framezero.Log("warn", "%s respondeu HTTP %d", url, code)
+            log("^3aviso^0: %s respondeu HTTP %d", url, code)
             return
         end
 
@@ -68,12 +75,12 @@ local function verify()
         status = { checked = true, blocked = reason ~= nil, reason = reason }
 
         if reason then
-            framezero.Log("warn", "%s bloqueia iframe (%s)", url, reason)
-            framezero.Log("warn", "a janela abre, mas o site fica em branco: use um site que permita iframe, "
+            log("^3aviso^0: %s bloqueia iframe (%s)", url, reason)
+            log("^3aviso^0: a janela abre, mas o site fica em branco — use um site que permita iframe, "
                 .. "ou libere 'Content-Security-Policy: frame-ancestors https://cfx-nui-%s' no site",
                 GetCurrentResourceName())
         else
-            framezero.Log("info", "%s aceita iframe — ok", url)
+            log("^2ok^0: %s aceita iframe", url)
         end
     end, "GET")
 end
