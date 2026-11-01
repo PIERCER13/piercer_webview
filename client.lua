@@ -1,4 +1,10 @@
 local opened = false
+
+-- ── Modo DUI ──────────────────────────────────────────────────────────────────
+-- Sites que recusam iframe (X-Frame-Options / CSP frame-ancestors) ficam pretos
+-- na NUI. A DUI é um navegador separado que abre o site como página principal,
+-- então esses cabeçalhos não se aplicam. A NUI deixa um "buraco" transparente
+-- (#stage), a gente desenha a textura da DUI ali embaixo e repassa o mouse.
 local TXD = GetCurrentResourceName() .. "_dui"
 local txd = nil
 local texCount = 0
@@ -13,6 +19,8 @@ end
 local function drawDui()
     CreateThread(function()
         while opened and dui do
+            -- O fundo escurecido da NUI cobriria a textura, então no modo DUI
+            -- ele é transparente e o escurecimento é desenhado aqui.
             DrawRect(0.5, 0.5, 1.0, 1.0, 0, 0, 0, 140)
             local r = duiRect
             local cx, cy = r.x + r.w / 2, r.y + r.h / 2
@@ -28,7 +36,7 @@ end
 
 local function close()
     opened = false
-    destroyDui() 
+    destroyDui()   -- DUI aberta consome FPS mesmo sem aparecer
     SetNuiFocus(false, false)
     SendNUIMessage({ action = "close" })
 end
@@ -37,6 +45,10 @@ RegisterCommand(Config.command, function()
     if opened then return end
     opened = true
 
+    -- { id, name, reason, url, frameBlocked } ou false (sem permissão / sem personagem)
+    -- reason: motivo do aviso (nil = site ok ou ainda não verificado)
+    -- url: Config.url já corrigido (YouTube → embed, Google → igu=1)
+    -- frameBlocked: o site recusa iframe (dá pra abrir via DUI)
     local info = framezero.TriggerCallback(GetCurrentResourceName()..":open", 10000)
     if type(info) ~= "table" or not info.id then
         opened = false
@@ -74,7 +86,8 @@ RegisterNUICallback("close", function(_, cb)
     cb("ok")
 end)
 
-
+-- A NUI manda a posição do #stage (0..1 da tela) e o tamanho em pixels.
+-- Na primeira vez cria a DUI; depois só atualiza a posição (resize).
 RegisterNUICallback("duiStage", function(data, cb)
     cb("ok")
     if not opened then return end

@@ -153,6 +153,8 @@ iframe {
     background: #121212;
 }
 
+/* Modo DUI: o site é desenhado pelo jogo ATRÁS da NUI, então tudo que fica
+   por cima do #stage precisa ser transparente (o escurecimento vem do Lua). */
 #app.dui { background: transparent; }
 #app.dui .window { background: transparent; }
 

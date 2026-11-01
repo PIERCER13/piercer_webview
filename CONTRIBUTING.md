@@ -1,33 +1,33 @@
-# Contribuindo com o piercer_webview
+# Contributing to piercer_webview
 
-Valeu por querer ajudar! 🙌
+Thanks for wanting to help! 🙌
 
-Dúvida rápida? Chama o **@piercer** no [Discord](https://discord.gg/jZ3vTmdjU7).
+Quick question? Ping **@piercer** on [Discord](https://discord.gg/jZ3vTmdjU7).
 
-## Reportando bugs
+## Reporting bugs
 
-Abra uma *issue* com:
+Open an *issue* with:
 
-- O que você fez, o que esperava e o que aconteceu
-- Versão do artifact do FiveM, o framework que usa e a versão da framezero_bridge
-- Erros do F8 (client) e do console do servidor, se houver
-- O trecho do seu `config.lua` (sem dados sensíveis)
+- What you did, what you expected and what happened
+- Your FiveM artifact version, the framework you use and the framezero_bridge version
+- F8 (client) and server console errors, if any
+- The relevant part of your `config.lua` (without sensitive data)
 
-## Sugerindo melhorias
+## Suggesting improvements
 
-Abra uma *issue* descrevendo a ideia e o caso de uso antes de começar algo grande, assim a gente alinha o caminho.
+Open an *issue* describing the idea and the use case before starting anything big, so we can align on the approach.
 
-## Enviando um pull request
+## Sending a pull request
 
-1. Faça um *fork* e crie uma branch: `git checkout -b minha-melhoria`
-2. Mantenha o estilo do código (indentação de 4 espaços, nomes curtos e claros)
-3. Teste no jogo: abrir, fechar com ESC, recarregar, copiar ID, com/sem permissão e nos modos iframe e DUI
-4. Se adicionou uma opção no `config.lua`, documente no README
-5. Abra o PR explicando o que mudou e por quê
+1. Fork and create a branch: `git checkout -b my-improvement`
+2. Keep the code style (4-space indentation, short and clear names)
+3. Test in game: open, close with ESC, reload, copy ID, with/without permission, and in both iframe and DUI modes
+4. If you added a `config.lua` option, document it in the README
+5. Open the PR explaining what changed and why
 
-### Ideias bem-vindas
+### Welcome ideas
 
-- Tradução da interface
-- Novos temas visuais
+- Interface translations
+- New visual themes
 
-Ao contribuir, você concorda que seu código será distribuído sob a [licença MIT](LICENSE).
+By contributing, you agree that your code becomes part of the project, owned by FrameZero.

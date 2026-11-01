@@ -2,329 +2,327 @@
 
 # 🌐 piercer_webview
 
-**Abra qualquer site dentro do GTA V, direto no seu servidor FiveM.**
+**Open any website inside GTA V, right on your FiveM server.**
 
-Um navegador in-game leve, bonito e 100% configurável, que funciona em **qualquer framework**.
-Loja, painel, formulário de whitelist, ranking, wiki, mapa… se tem link, abre no jogo.
+A lightweight, good-looking and 100% configurable in-game browser that works on **any framework**.
+Store, staff panel, whitelist form, ranking, wiki, map… if it has a link, it opens in the game.
 
 ![FiveM](https://img.shields.io/badge/FiveM-resource-F40552?style=for-the-badge)
 ![Frameworks](https://img.shields.io/badge/ESX%20%C2%B7%20QBCore%20%C2%B7%20Qbox%20%C2%B7%20vRP%20%C2%B7%20standalone-2b2b2b?style=for-the-badge)
 ![Lua](https://img.shields.io/badge/Lua-5.4-000080?style=for-the-badge&logo=lua&logoColor=white)
-![License](https://img.shields.io/badge/licen%C3%A7a-MIT-22c55e?style=for-the-badge)
-[![Discord](https://img.shields.io/badge/Discord-entrar-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/jZ3vTmdjU7)
+[![Discord](https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/jZ3vTmdjU7)
+
+[![Ler em Português](https://img.shields.io/badge/Ler%20em%20Portugu%C3%AAs-5865F2?style=for-the-badge&logo=googletranslate&logoColor=white)](README.pt-BR.md)
 
 </div>
 
 ---
 
-## 🎯 Para que serve
+## 🎯 What it's for
 
-Muitos servidores têm coisas importantes **fora do jogo**: loja de VIP, painel da staff, formulário de whitelist, regras, ranking, mapa…
-Normalmente o jogador precisa minimizar o GTA, abrir o navegador, achar o link e depois voltar. Isso quebra a imersão e muita gente desiste no meio do caminho.
+Many servers keep important things **outside the game**: VIP store, staff panel, whitelist form, rules, ranking, map…
+Normally the player has to minimize GTA, open a browser, find the link and come back. That breaks immersion, and a lot of people give up halfway.
 
-O **piercer_webview** resolve isso: o jogador digita um comando (ou aperta uma tecla) e o site abre **numa janela por cima do jogo**, sem sair do servidor.
-Quando termina, aperta **ESC** e volta a jogar na hora.
+**piercer_webview** solves it: the player types a command (or presses a key) and the site opens **in a window on top of the game**, without leaving the server.
+When they're done, they press **ESC** and go right back to playing.
 
-**Exemplos de uso:**
+**Use cases:**
 
-| Site | Como fica no jogo |
+| Site | How it looks in-game |
 |---|---|
-| 🛒 Loja de VIP / coins | `/loja` abre a loja já mostrando o ID do jogador para colar no checkout |
-| 📝 Whitelist / formulário | `/whitelist` abre o formulário com o ID e o nome já preenchidos via URL |
-| 🛡️ Painel da staff | `/painel` só abre para quem tem permissão de admin |
-| 📖 Regras / wiki | `/regras` abre as regras do servidor pra qualquer um |
-| 🏆 Ranking / estatísticas | `/ranking` com uma tecla de atalho (ex.: `F7`) |
-| 🗺️ Mapa, rádio, cardápio, catálogo… | Qualquer página que tenha link (as que bloqueiam iframe abrem via DUI) |
+| 🛒 VIP / coins store | `/store` opens the store already showing the player's ID to paste at checkout |
+| 📝 Whitelist / form | `/whitelist` opens the form with ID and name pre-filled via URL |
+| 🛡️ Staff panel | `/panel` only opens for players with admin permission |
+| 📖 Rules / wiki | `/rules` opens the server rules for anyone |
+| 🏆 Ranking / stats | `/ranking` with a hotkey (e.g. `F7`) |
+| 🗺️ Map, radio, menu, catalog… | Any page with a link (the ones that block iframes open via DUI) |
 
-## 🔧 Como funciona
+## 🔧 How it works
 
-1. **O jogador abre**: digita o comando configurado (ex.: `/loja`) ou aperta a tecla de atalho.
-2. **O servidor confere**: pela [framezero_bridge](https://github.com/PIERCER13/framezero_bridge), o `server.lua` pega o **ID do personagem** no seu framework e, se você configurou `Config.perms`, verifica se ele tem alguma das permissões. Se não tiver, aparece a notificação de acesso negado e nada abre.
-3. **A janela aparece**: o `client.lua` libera o mouse (`SetNuiFocus`) e manda a interface (NUI) abrir. A NUI carrega o seu site dentro de um **iframe**, com o título, a cor e o ID que você configurou. Se o site não aceita iframe, ele é aberto via **DUI** no mesmo lugar (veja [Sites que bloqueiam iframe](#-sites-que-bloqueiam-iframe-modo-dui)).
-4. **(Opcional) O site recebe os dados**: com `Config.sendParams = true`, o link é aberto como `seusite.com/?id=123&nome=Fulano`, e o site pode usar isso para preencher campos automaticamente.
-5. **O jogador fecha**: ESC ou o botão ✕ fecham a janela e devolvem o controle ao jogo. Ao reabrir, a página **continua de onde parou** (não perde login nem scroll). Para atualizar, é só clicar em ↻.
+1. **The player opens it**: types the configured command (e.g. `/store`) or presses the hotkey.
+2. **The server checks**: through [framezero_bridge](https://github.com/PIERCER13/framezero_bridge), `server.lua` gets the **character ID** from your framework and, if you set `Config.perms`, checks whether they have any of the permissions. If not, the access-denied notification shows and nothing opens.
+3. **The window appears**: `client.lua` frees the mouse (`SetNuiFocus`) and tells the interface (NUI) to open. The NUI loads your site inside an **iframe**, with the title, color and ID you configured. If the site refuses iframes, it opens via **DUI** in the same spot (see [Sites that block iframes](#-sites-that-block-iframes-dui-mode)).
+4. **(Optional) The site receives the data**: with `Config.sendParams = true`, the link opens as `yoursite.com/?id=123&name=John`, and the site can use that to fill fields automatically.
+5. **The player closes it**: ESC or the ✕ button close the window and give control back to the game. When reopened, the page **continues where it left off** (no lost login or scroll). To refresh, just click ↻.
 
-> Tudo é controlado por **um único arquivo**: o [`config.lua`](config.lua). Você não precisa saber programar para usar.
+> Everything is controlled by **a single file**: [`config.lua`](config.lua). You don't need to know how to program to use it.
 
-## ✨ O que ele faz
+## ✨ What it does
 
-- 🖥️ **Abre um site em uma janela** dentro do jogo (iframe com NUI), com fundo escurecido e animação de entrada.
-- 🛟 **Abre até site que bloqueia iframe** (YouTube, GitBook, Google…): detecta o bloqueio ao iniciar e cai pro modo **DUI** sozinho.
-- 🔗 **Corrige links conhecidos**: YouTube vira `/embed/` e Google ganha `igu=1`, pra abrir em iframe com teclado.
-- 🧩 **Multi-framework**: ESX, QBCore, Qbox, vRP, vRPex, Creative ou standalone, sem mudar uma linha de código.
-- ⌨️ **Comando e tecla configuráveis**: o jogador ainda pode trocar a tecla em *Configurações › Teclas › FiveM*.
-- 🔒 **Restrição por permissão**: deixe aberto pra todos ou só pra `admin`, `police`, `vip`…
-- 🪪 **Mostra o ID do personagem** no topo com botão de **copiar**, ideal pra sites que pedem o ID do jogador.
-- 🔗 **Envia `id` e `nome` na URL** (`?id=123&nome=Fulano`) para o site identificar o jogador automaticamente.
-- 🎨 **Título e cor de destaque** personalizáveis, pra combinar com a identidade do seu servidor.
-- 🔄 Botão de **recarregar**, fechar com **ESC** e a página **não recarrega** toda vez que você reabre (mantém login, scroll, etc.).
-- 📦 **Modelo reutilizável**: precisa de 3 sites? Copie a pasta 3 vezes e troque só o `config.lua`.
+- 🖥️ **Opens a site in a window** inside the game (iframe via NUI), with a dimmed background and an entry animation.
+- 🛟 **Opens even sites that block iframes** (YouTube, GitBook, Google…): it detects the block on startup and falls back to **DUI** on its own.
+- 🔗 **Fixes known links**: YouTube becomes `/embed/` and Google gets `igu=1`, so they open in an iframe with keyboard support.
+- 🧩 **Multi-framework**: ESX, QBCore, Qbox, vRP, vRPex, Creative or standalone, without changing a single line of code.
+- ⌨️ **Configurable command and key**: the player can still change the key in *Settings › Key Bindings › FiveM*.
+- 🔒 **Permission restriction**: leave it open to everyone or only for `admin`, `police`, `vip`…
+- 🪪 **Shows the character ID** at the top with a **copy** button, great for sites that ask for the player's ID.
+- 🔗 **Sends `id` and `name` in the URL** (`?id=123&name=John`) so the site can identify the player automatically.
+- 🎨 **Customizable title and accent color**, to match your server's identity.
+- 🔄 **Reload** button, close with **ESC**, and the page **doesn't reload** every time you reopen it (keeps login, scroll, etc.).
+- 📦 **Reusable template**: need 3 sites? Copy the folder 3 times and change only `config.lua`.
 
-## 📋 Requisitos
+## 📋 Requirements
 
-| Requisito | Observação |
+| Requirement | Note |
 |---|---|
-| Servidor **FiveM** | Qualquer artifact recente |
-| **[framezero_bridge](https://github.com/PIERCER13/framezero_bridge)** | Detecta o seu framework sozinha e cuida de ID, nome, permissão e notificação |
+| **FiveM** server | Any recent artifact |
+| **[framezero_bridge](https://github.com/PIERCER13/framezero_bridge)** | Detects your framework on its own and handles ID, name, permission and notifications |
 
-## 🚀 Instalação
+## 🚀 Installation
 
-1. Instale a **framezero_bridge** em `resources/`. A pasta precisa se chamar exatamente `framezero_bridge`.
-2. Baixe este repositório (**Code › Download ZIP**) ou clone:
+1. Install **framezero_bridge** in `resources/`. The folder must be named exactly `framezero_bridge`.
+2. Download this repository (**Code › Download ZIP**) or clone it:
    ```bash
    git clone https://github.com/PIERCER13/piercer_webview.git
    ```
-3. Coloque a pasta `piercer_webview` em `resources/` do seu servidor.
-4. Edite o [`config.lua`](config.lua) (pelo menos `Config.url` e `Config.command`).
-5. No `server.cfg`, a ordem é: **framework → bridge → webview**:
+3. Put the `piercer_webview` folder in your server's `resources/`.
+4. Edit [`config.lua`](config.lua) (at least `Config.url` and `Config.command`).
+5. In `server.cfg`, the order is: **framework → bridge → webview**:
    ```cfg
-   ensure vrp              # ou es_extended, qb-core, qbx_core... (pule se for standalone)
+   ensure vrp              # or es_extended, qb-core, qbx_core... (skip if standalone)
    ensure framezero_bridge
    ensure piercer_webview
    ```
-6. Entre no jogo e digite `/seucomando`. Pronto! 🎉
+6. Join the game and type `/yourcommand`. Done! 🎉
 
-## ⚙️ Configuração
+## ⚙️ Configuration
 
-Tudo fica no [`config.lua`](config.lua):
+Everything lives in [`config.lua`](config.lua):
 
-| Opção | Tipo | Padrão | Descrição |
+| Option | Type | Default | Description |
 |---|---|---|---|
-| `Config.url` | `string` | — | Endereço do site que será aberto (com `https://`) |
-| `Config.command` | `string` | — | Comando para abrir, **sem a barra** (ex.: `"loja"` → `/loja`) |
-| `Config.key` | `string` | `""` | Tecla padrão (ex.: `"F7"`). `""` = sem tecla |
-| `Config.mode` | `string` | `"auto"` | `"auto"` (iframe, e DUI se o site bloquear iframe), `"iframe"` ou `"dui"` |
-| `Config.fixUrls` | `boolean` | `true` | Converte links do YouTube pra `/embed/` e adiciona `igu=1` no Google |
-| `Config.warnBlocked` | `boolean` | `true` | Avisa no console e na janela quando o site bloqueia iframe |
-| `Config.perms` | `table` | `{}` | Quem pode abrir (veja a tabela abaixo). Vazio = todo mundo |
-| `Config.title` | `string` | `""` | Texto do título no topo da janela |
-| `Config.highlight` | `string` | `""` | Parte do título pintada com a cor de destaque |
-| `Config.color` | `string` | `"#9a9a9a"` | Cor de destaque (título e ID) |
-| `Config.denied` | `string` | `"Você não tem acesso a isso."` | Mensagem quando o jogador não tem permissão |
-| `Config.showId` | `boolean` | `false` | Mostra o ID do personagem no topo com botão de copiar |
-| `Config.idHint` | `string` | `"Use seu ID:"` | Texto exibido ao lado do ID |
-| `Config.sendParams` | `boolean` | `false` | Adiciona `?id=<id>&nome=<nome>` na URL do site |
+| `Config.url` | `string` | — | Address of the site to open (with `https://`) |
+| `Config.command` | `string` | — | Command to open it, **without the slash** (e.g. `"store"` → `/store`) |
+| `Config.key` | `string` | `""` | Default key (e.g. `"F7"`). `""` = no key |
+| `Config.mode` | `string` | `"auto"` | `"auto"` (iframe, and DUI if the site blocks iframes), `"iframe"` or `"dui"` |
+| `Config.fixUrls` | `boolean` | `true` | Converts YouTube links to `/embed/` and adds `igu=1` to Google |
+| `Config.warnBlocked` | `boolean` | `true` | Warns in the console and in the window when the site blocks iframes |
+| `Config.perms` | `table` | `{}` | Who can open it (see the table below). Empty = everyone |
+| `Config.title` | `string` | `""` | Title text at the top of the window |
+| `Config.highlight` | `string` | `""` | Part of the title painted with the accent color |
+| `Config.color` | `string` | `"#9a9a9a"` | Accent color (title and ID) |
+| `Config.denied` | `string` | `"You don't have access to this."` | Message when the player lacks permission |
+| `Config.showId` | `boolean` | `false` | Shows the character ID at the top with a copy button |
+| `Config.idHint` | `string` | `"Use your ID:"` | Text shown next to the ID |
+| `Config.sendParams` | `boolean` | `false` | Adds `?id=<id>&name=<name>` to the site URL |
 
-### O que é "permissão" e "ID" em cada framework
+### What "permission" and "ID" mean in each framework
 
-A bridge traduz para o que o seu framework entende:
+The bridge translates to what your framework understands:
 
-| Framework | `Config.perms` aceita | ID mostrado / enviado |
+| Framework | `Config.perms` accepts | ID shown / sent |
 |---|---|---|
-| **vRP · vRPex · Creative** | permissão ou grupo | passaporte (`user_id`) |
-| **QBCore · Qbox** | job, gang, grupo ou ACE | `citizenid` |
-| **ESX** | grupo (`admin`) ou job | `identifier` |
-| **Standalone** | ACE (`add_ace`) | license da Rockstar |
+| **vRP · vRPex · Creative** | permission or group | passport (`user_id`) |
+| **QBCore · Qbox** | job, gang, group or ACE | `citizenid` |
+| **ESX** | group (`admin`) or job | `identifier` |
+| **Standalone** | ACE (`add_ace`) | Rockstar license |
 
-> 💡 No standalone o ID é a license (`license:abc123…`). Se o seu site não usa isso, deixe `Config.showId = false`.
+> 💡 On standalone the ID is the license (`license:abc123…`). If your site doesn't use that, leave `Config.showId = false`.
 
-### Exemplo: loja VIP
+### Example: VIP store
 
 ```lua
-Config.url = "https://loja.meuservidor.com.br"
-Config.command = "loja"
+Config.url = "https://store.myserver.com"
+Config.command = "store"
 Config.key = "F7"
 Config.perms = {}
 
-Config.title = "LOJA"
+Config.title = "STORE"
 Config.highlight = "VIP"
 Config.color = "#f5b301"
 
 Config.showId = true
-Config.idHint = "Informe seu ID no checkout:"
+Config.idHint = "Enter your ID at checkout:"
 Config.sendParams = true
 ```
 
-### Exemplo: painel só para staff
+### Example: staff-only panel
 
 ```lua
-Config.url = "https://painel.meuservidor.com.br"
-Config.command = "painel"
-Config.perms = { "admin" }   -- grupo admin (ESX/QBCore) ou permissão "admin" (vRP)
+Config.url = "https://panel.myserver.com"
+Config.command = "panel"
+Config.perms = { "admin" }   -- admin group (ESX/QBCore) or "admin" permission (vRP)
 
-Config.title = "PAINEL"
+Config.title = "PANEL"
 Config.highlight = "STAFF"
 Config.color = "#ef4444"
 ```
 
-No **standalone**, libere pelo `server.cfg` usando ACE:
+On **standalone**, allow it in `server.cfg` using an ACE:
 
 ```cfg
 add_ace group.admin admin allow
 ```
 
-## 🧩 Vários sites no mesmo servidor
+## 🧩 Multiple sites on the same server
 
-O resource foi pensado como **modelo**. Pra ter mais de um site:
+The resource is meant to be a **template**. To have more than one site:
 
 ```
 resources/
 ├── framezero_bridge/
-├── piercer_loja/      ← cópia com Config.command = "loja"
-├── piercer_wiki/      ← cópia com Config.command = "wiki"
-└── piercer_ranking/   ← cópia com Config.command = "ranking"
+├── piercer_store/      ← copy with Config.command = "store"
+├── piercer_wiki/       ← copy with Config.command = "wiki"
+└── piercer_ranking/    ← copy with Config.command = "ranking"
 ```
 
-Copie a pasta, renomeie, troque o `config.lua` e dê `ensure` em cada uma.
-Não precisa mexer em nenhum outro arquivo: o nome do resource é detectado automaticamente e cada cópia usa o próprio callback.
+Copy the folder, rename it, change `config.lua` and `ensure` each one.
+You don't need to touch any other file: the resource name is detected automatically and each copy uses its own callback.
 
-> ⚠️ Cada cópia precisa de um `Config.command` diferente.
+> ⚠️ Each copy needs a different `Config.command`.
 
-## 🛟 Sites que bloqueiam iframe (modo DUI)
+## 🛟 Sites that block iframes (DUI mode)
 
-Alguns sites recusam ser exibidos dentro de iframes (cabeçalho `X-Frame-Options` ou `Content-Security-Policy: frame-ancestors`):
-YouTube (página normal), GitBook, Instagram, bancos… Na NUI isso vira uma tela preta, e nenhum atributo de `<iframe>` contorna.
+Some sites refuse to be shown inside iframes (`X-Frame-Options` header or `Content-Security-Policy: frame-ancestors`):
+YouTube (normal page), GitBook, Instagram, banks… In the NUI that becomes a black screen, and no `<iframe>` attribute gets around it.
 
-Com `Config.mode = "auto"` (padrão), o `server.lua` faz um GET em `Config.url` ao iniciar e descobre se o site bloqueia.
-Se bloquear, o site abre via **DUI**: um navegador separado, desenhado pelo jogo exatamente onde fica a janela, que não sofre esse bloqueio.
+With `Config.mode = "auto"` (default), `server.lua` does a GET on `Config.url` at startup and finds out whether the site blocks it.
+If it does, the site opens via **DUI**: a separate browser, drawn by the game exactly where the window is, which isn't affected by that block.
 
 | | iframe | DUI |
 |---|---|---|
-| Abre qualquer site | ❌ só os que permitem iframe | ✅ |
-| Mouse e rolagem | ✅ | ✅ |
-| Teclado | ✅ | ❌ limitação do FiveM |
-| Mantém a página ao reabrir | ✅ | ❌ recarrega (a DUI é destruída ao fechar pra não gastar FPS) |
+| Opens any site | ❌ only iframe-friendly ones | ✅ |
+| Mouse and scroll | ✅ | ✅ |
+| Keyboard | ✅ | ❌ FiveM limitation |
+| Keeps the page on reopen | ✅ | ❌ reloads (the DUI is destroyed on close to save FPS) |
 
-No modo DUI a janela mostra um aviso com **abrir no navegador** e **copiar link**, pra quando o jogador precisar digitar.
+In DUI mode the window shows a notice with **open in browser** and **copy link**, for when the player needs to type.
 
-> 💡 Antes de cair pra DUI, o `Config.fixUrls` tenta a versão do link que aceita iframe: `youtube.com/watch?v=ID`, `youtu.be/ID` e `/shorts/ID` viram `youtube.com/embed/ID`, e a página inicial/busca do Google ganha `?igu=1`.
+> 💡 Before falling back to DUI, `Config.fixUrls` tries the iframe-friendly version of the link: `youtube.com/watch?v=ID`, `youtu.be/ID` and `/shorts/ID` become `youtube.com/embed/ID`, and Google's home/search page gets `?igu=1`.
 
-## 🔗 Integrando com o seu site
+## 🔗 Integrating with your site
 
-Com `Config.sendParams = true`, o site é aberto assim:
+With `Config.sendParams = true`, the site opens like this:
 
 ```
-https://seusite.com/?id=123&nome=Fulano%20Silva
+https://yoursite.com/?id=123&name=John%20Smith
 ```
 
-Do lado do site, basta ler os parâmetros:
+On the site side, just read the params:
 
 ```js
 const params = new URLSearchParams(location.search);
 const id = params.get('id');
-const nome = params.get('nome');
+const name = params.get('name');
 ```
 
-> 🔐 **Importante:** esses parâmetros vêm da URL e **podem ser alterados** por qualquer pessoa que abrir o link fora do jogo.
-> Use-os para *preencher campos* e melhorar a experiência, **nunca** como prova de identidade para entregar itens, dinheiro ou permissões.
-> Para isso, valide no seu backend (token assinado, login, etc.).
+> 🔐 **Important:** these params come from the URL and **can be changed** by anyone who opens the link outside the game.
+> Use them to *fill in fields* and improve the experience, **never** as proof of identity to hand out items, money or permissions.
+> For that, validate on your backend (signed token, login, etc.).
 
-## 🗂️ Estrutura
+## 🗂️ Structure
 
 ```
 piercer_webview/
-├── fxmanifest.lua   # manifesto do resource (depende da framezero_bridge)
-├── config.lua       # ⭐ o único arquivo que você precisa editar
-├── client.lua       # comando, tecla, foco da NUI e desenho da DUI
-├── server.lua       # permissão + ID/nome + preflight do site (iframe x DUI)
+├── fxmanifest.lua   # resource manifest (depends on framezero_bridge)
+├── config.lua       # ⭐ the only file you need to edit
+├── client.lua       # command, key, NUI focus and DUI drawing
+├── server.lua       # permission + ID/name + site preflight (iframe vs DUI)
 └── nui/
-    ├── index.html   # janela do navegador
-    ├── script.js    # lógica da interface
-    └── style.css    # visual
+    ├── index.html   # browser window
+    ├── script.js    # interface logic
+    └── style.css    # styling
 ```
 
-### Fluxo
+### Flow
 
 ```
-Jogador digita /comando
+Player types /command
         │
         ▼
 client.lua ──framezero.TriggerCallback──▶ server.lua
                                             ├─ framezero.GetPlayerId
                                             ├─ framezero.HasPermission (Config.perms)
-                                            └─ devolve { id, nome, url, frameBlocked }
+                                            └─ returns { id, name, url, frameBlocked }
         │
         ▼
-SendNUIMessage("open") ──▶ iframe com Config.url
-        │                  └─ ou, se o site bloqueia iframe: CreateDui + DrawSprite no #stage
+SendNUIMessage("open") ──▶ iframe with Config.url
+        │                  └─ or, if the site blocks iframes: CreateDui + DrawSprite on #stage
         │
    ESC / ✕ ──▶ callback "close" ──▶ DestroyDui + SetNuiFocus(false)
 ```
 
-## ❓ Problemas comuns
+## ❓ Common issues
 
 <details>
-<summary><b>"a resource framezero_bridge não está iniciada"</b></summary>
+<summary><b>"resource framezero_bridge is not started"</b></summary>
 
-A bridge precisa estar rodando antes do resource. Confira se:
-- a pasta se chama exatamente `framezero_bridge`;
-- `ensure framezero_bridge` vem **antes** de `ensure piercer_webview` no `server.cfg`.
+The bridge must be running before the resource. Check that:
+- the folder is named exactly `framezero_bridge`;
+- `ensure framezero_bridge` comes **before** `ensure piercer_webview` in `server.cfg`.
 </details>
 
 <details>
-<summary><b>A janela abre mas o site fica em branco / "recusou a conexão"</b></summary>
+<summary><b>The window opens but the site is blank / "refused to connect"</b></summary>
 
-O site recusa ser exibido dentro de iframes (cabeçalho `X-Frame-Options` ou `Content-Security-Policy: frame-ancestors`).
-Isso não é bug do resource: quem decide é o servidor do site.
+The site refuses to be shown inside iframes (`X-Frame-Options` header or `Content-Security-Policy: frame-ancestors`).
+This isn't a bug in the resource: the site's server decides it.
 
-- Com `Config.mode = "auto"` (padrão) isso já é resolvido sozinho: o console mostra
-  `[piercer_webview] aviso: https://site.com bloqueia iframe (X-Frame-Options: SAMEORIGIN)` e o site abre via
-  **DUI** (veja [Sites que bloqueiam iframe](#-sites-que-bloqueiam-iframe-modo-dui)).
-- Com `Config.mode = "iframe"` o site fica em branco; a janela mostra o motivo com um botão **copiar link**.
-- Se o console diz `não consegui verificar`, o servidor não alcançou o site na inicialização; o modo `"auto"`
-  tenta iframe. Se ficar preto, use `Config.mode = "dui"`.
+- With `Config.mode = "auto"` (default) this is already handled: the console shows
+  `[piercer_webview] warning: https://site.com blocks iframe (X-Frame-Options: SAMEORIGIN)` and the site opens via
+  **DUI** (see [Sites that block iframes](#-sites-that-block-iframes-dui-mode)).
+- With `Config.mode = "iframe"` the site stays blank; the window shows the reason with a **copy link** button.
+- If the console says `couldn't verify`, the server didn't reach the site at startup; `"auto"` mode
+  tries iframe. If it stays black, use `Config.mode = "dui"`.
 
-Se o site for seu e você precisa de **teclado**, libere o iframe nos cabeçalhos:
+If the site is yours and you need the **keyboard**, allow the iframe in the headers:
 
 ```
 Content-Security-Policy: frame-ancestors 'self' https://cfx-nui-piercer_webview
 ```
 
-e **remova** o `X-Frame-Options` (o `ALLOW-FROM` não funciona mais no Chrome). O host `cfx-nui-<pasta>` segue o
-nome da pasta do resource: se você renomear a pasta, ajuste o valor aqui.
+and **remove** `X-Frame-Options` (`ALLOW-FROM` no longer works in Chrome). The `cfx-nui-<folder>` host follows the
+resource folder name: if you rename the folder, adjust this value.
 
 </details>
 
 <details>
-<summary><b>No modo DUI o teclado não funciona</b></summary>
+<summary><b>In DUI mode the keyboard doesn't work</b></summary>
 
-É limitação do FiveM: ele repassa mouse e rolagem pra DUI, mas não teclas. Pra páginas onde o jogador precisa
-digitar (login, formulário), use o botão **abrir no navegador** do aviso, ou libere o iframe no seu site
-(pergunta acima) pra ele abrir em iframe.
+It's a FiveM limitation: it forwards mouse and scroll to the DUI, but not keystrokes. For pages where the player needs to
+type (login, form), use the **open in browser** button in the notice, or allow the iframe on your site
+(question above) so it opens in iframe mode.
 </details>
 
 <details>
-<summary><b>Digito o comando e nada acontece</b></summary>
+<summary><b>I type the command and nothing happens</b></summary>
 
-- Confira se a bridge e o piercer_webview iniciaram sem erro (F8 e console do servidor).
-- Se você configurou `Config.perms`, verifique se o seu personagem tem uma delas (veja a tabela de permissões por framework).
-- O jogador precisa estar com o personagem carregado no framework.
-- Ligue `Config.Debug = true` no config da bridge para ver qual adaptador atendeu cada chamada.
+- Check that the bridge and piercer_webview started without errors (F8 and the server console).
+- If you set `Config.perms`, make sure your character has one of them (see the per-framework permission table).
+- The player needs to be loaded in the framework.
+- Turn on `Config.Debug = true` in the bridge config to see which adapter handled each call.
 </details>
 
 <details>
-<summary><b>Mudei a tecla no config e não mudou no jogo</b></summary>
+<summary><b>I changed the key in the config and it didn't change in-game</b></summary>
 
-O FiveM salva o `RegisterKeyMapping` por jogador na primeira vez. Depois disso, a tecla só muda em
-*Configurações › Teclas › FiveM*. Isso é comportamento do próprio FiveM.
+FiveM saves `RegisterKeyMapping` per player the first time. After that, the key only changes in
+*Settings › Key Bindings › FiveM*. That's FiveM's own behavior.
 </details>
 
 <details>
-<summary><b>Meu framework / notificação não é detectado</b></summary>
+<summary><b>My framework / notification isn't detected</b></summary>
 
-Quem detecta é a bridge. No `config.lua` dela dá pra forçar o framework (`Config.Framework`) e a notificação (`Config.Notify`),
-ou sobrescrever qualquer função em `custom/server.lua`. Não precisa mexer no piercer_webview.
+The bridge is what detects it. In the bridge's `config.lua` you can force the framework (`Config.Framework`) and the notification (`Config.Notify`),
+or override any function in `custom/server.lua`. No need to touch piercer_webview.
 </details>
 
-## 💬 Suporte e comunidade
+## 💬 Support & community
 
-Dúvidas, sugestões ou quer mostrar como usou no seu servidor? Entra no Discord:
+Questions, suggestions, or want to show how you used it on your server? Join the Discord:
 
-<a href="https://discord.gg/jZ3vTmdjU7"><img src="https://img.shields.io/badge/Entrar%20no%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+<a href="https://discord.gg/jZ3vTmdjU7"><img src="https://img.shields.io/badge/Join%20the%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
 
-Lá é só chamar o **@piercer**.
+Just ping **@piercer** there.
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Achou um bug ou tem uma ideia? Contribuições são bem-vindas!
-Dá uma olhada no [CONTRIBUTING.md](CONTRIBUTING.md) e abra uma *issue* ou *pull request*.
+Found a bug or have an idea? Contributions are welcome!
+Take a look at [CONTRIBUTING.md](CONTRIBUTING.md) and open an *issue* or *pull request*.
 
-Se esse resource te ajudou, deixa uma ⭐ no repositório, isso ajuda outros devs a encontrarem o projeto.
+## 📄 License
 
-## 📄 Licença
-
-Distribuído sob a licença **MIT**. Use, modifique e redistribua à vontade, inclusive em servidores comerciais.
-Só mantenha o aviso de copyright. Veja [LICENSE](LICENSE).
+© PIERCER / FrameZero. All rights reserved.
 
 <div align="center">
 
