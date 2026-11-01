@@ -1,9 +1,6 @@
 Config = {}
 
 -- Modelo genérico: abre qualquer site dentro do jogo (iframe).
--- Pra reaproveitar em outro site: copie a pasta, renomeie e
--- troque só os campos abaixo.
-
 Config.url = "https://www.netlify.com/"
 Config.command = "comandoaqui"
 

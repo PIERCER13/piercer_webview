@@ -1,25 +1,11 @@
--- Framework, permissão e notificação ficam com a framezero_bridge
--- (ESX, QBCore, Qbox, vRP, vRPex, Creative ou standalone).
-
--- ── Preflight: o site aceita ser aberto dentro de um iframe? ──────────────────
--- A NUI é um Chromium (CEF) e obedece X-Frame-Options e CSP frame-ancestors do
--- site. Quando o site bloqueia, o iframe fica preto e o jogador (e você) não
--- entende o motivo. Aqui a gente faz um GET em Config.url na inicialização,
--- avisa no console e manda o motivo pra NUI mostrar um aviso com "copiar link".
-
--- Log próprio: framezero.Log é interno da bridge, não existe na API exportada.
 local TAG = "^3[" .. GetCurrentResourceName() .. "]^0 "
 local function log(fmt, ...)
     if select("#", ...) > 0 then fmt = fmt:format(...) end
     print(TAG .. fmt .. "^0")
 end
 
--- url = Config.url já corrigido · frameBlocked = recusa iframe (cliente usa DUI)
 local status = { checked = false, blocked = false, reason = nil, url = nil, frameBlocked = false }
 
--- Links conhecidos que têm versão que aceita iframe:
---   youtube.com/watch?v=ID · youtu.be/ID · youtube.com/shorts/ID → youtube.com/embed/ID
---   www.google.* (início/busca) → ?igu=1 (o Google libera iframe com isso)
 local function fixUrl(url)
     if Config.fixUrls == false or type(url) ~= "string" then return url end
 
@@ -45,10 +31,6 @@ local function lowerKeys(headers)
     return out
 end
 
--- Retorna a lista do frame-ancestors quando ela NÃO libera a NUI do FiveM
--- (origem https://cfx-nui-<resource>). nil = libera / não tem a diretiva.
--- Obs.: "https:" sozinho não conta como liberado — o GitBook manda
--- "frame-ancestors https: ionic: capacitor:" e mesmo assim o CEF bloqueia.
 local function blockingFrameAncestors(csp)
     local list = string.match(string.lower(csp), "frame%-ancestors%s+([^;]+)")
     if not list then return nil end
@@ -67,8 +49,6 @@ local function verify()
     if Config.warnBlocked == false and (Config.mode == "iframe" or Config.mode == "dui") then return end
     if type(url) ~= "string" or url == "" then return end
 
-    -- "linkaqui", "meusite.com" (sem esquema): o iframe trata como caminho
-    -- relativo da NUI e não carrega nada. É o erro mais comum.
     if not string.match(url, "^https?://") then
         status = { checked = true, blocked = true, reason = "Config.url precisa começar com https://", url = url, frameBlocked = false }
         log("^3aviso^0: Config.url = \"%s\" não começa com http(s):// — o iframe não carrega", url)
@@ -137,9 +117,6 @@ framezero.RegisterCallback(GetCurrentResourceName()..":open", function(source)
         end
     end
 
-    -- Uma tabela só: versões antigas da bridge entregam apenas o 1º retorno.
-    -- reason: motivo do aviso (nil = site ok / não verificado), pra NUI explicar
-    -- em vez de deixar a tela preta · frameBlocked: o cliente abre via DUI
     return {
         id = id,
         name = framezero.GetName(source) or "",

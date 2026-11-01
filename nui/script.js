@@ -37,10 +37,6 @@ function copyText(text) {
     return ok;
 }
 
-// ── Modo DUI ─────────────────────────────────────────────────────────────────
-// O client.lua desenha a DUI exatamente onde está o #stage; aqui a gente manda
-// a posição (0..1 da tela) e repassa o mouse em coordenadas 0..1 do #stage.
-
 function sendStage() {
     if (mode !== 'dui' || $('app').hidden) return;
     const r = $('stage').getBoundingClientRect();
