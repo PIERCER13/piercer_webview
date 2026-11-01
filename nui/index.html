@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Site</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" hidden>
+        <div class="window">
+            <header>
+                <div class="title"><span id="t-main"></span> <span id="t-hl" class="hl"></span></div>
+                <div class="info">
+                    <div id="idbox" class="info" hidden>
+                        <span class="hint" id="hint"></span>
+                        <button id="copy" class="chip" title="Copiar ID">
+                            ID <strong id="pid">0</strong>
+                            <em id="copied">copiar</em>
+                        </button>
+                    </div>
+                    <button id="reload" class="icon" title="Recarregar">&#x21bb;</button>
+                    <button id="close" class="icon close" title="Fechar (ESC)">&#x2715;</button>
+                </div>
+            </header>
+            <iframe id="frame" allow="clipboard-write; autoplay"></iframe>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
