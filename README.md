@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌐 piercer_browser
+# 🌐 piercer_webview
 
 **Abra qualquer site dentro do GTA V, direto no seu servidor FiveM.**
 
@@ -22,7 +22,7 @@ Loja, painel, formulário de whitelist, ranking, wiki, mapa… se tem link, abre
 Muitos servidores têm coisas importantes **fora do jogo**: loja de VIP, painel da staff, formulário de whitelist, regras, ranking, mapa…
 Normalmente o jogador precisa minimizar o GTA, abrir o navegador, achar o link e depois voltar. Isso quebra a imersão e muita gente desiste no meio do caminho.
 
-O **piercer_browser** resolve isso: o jogador digita um comando (ou aperta uma tecla) e o site abre **numa janela por cima do jogo**, sem sair do servidor.
+O **piercer_webview** resolve isso: o jogador digita um comando (ou aperta uma tecla) e o site abre **numa janela por cima do jogo**, sem sair do servidor.
 Quando termina, aperta **ESC** e volta a jogar na hora.
 
 **Exemplos de uso:**
@@ -68,17 +68,17 @@ Quando termina, aperta **ESC** e volta a jogar na hora.
 ## 🚀 Instalação
 
 1. Instale a **framezero_bridge** em `resources/`. A pasta precisa se chamar exatamente `framezero_bridge`.
-2. Baixe este repositório (**Code › Download ZIP**) ou clone:
+2. Baixe este repositório (**Code › Download ZIP**) ou clone já na pasta com o nome certo:
    ```bash
-   git clone https://github.com/PIERCER13/piercer_browser.git
+   git clone https://github.com/PIERCER13/piercer_browser.git piercer_webview
    ```
-3. Coloque a pasta `piercer_browser` em `resources/` do seu servidor.
+3. Coloque a pasta `piercer_webview` em `resources/` do seu servidor.
 4. Edite o [`config.lua`](config.lua) (pelo menos `Config.url` e `Config.command`).
-5. No `server.cfg`, a ordem é: **framework → bridge → browser**:
+5. No `server.cfg`, a ordem é: **framework → bridge → webview**:
    ```cfg
    ensure vrp              # ou es_extended, qb-core, qbx_core... (pule se for standalone)
    ensure framezero_bridge
-   ensure piercer_browser
+   ensure piercer_webview
    ```
 6. Entre no jogo e digite `/seucomando`. Pronto! 🎉
 
@@ -91,6 +91,7 @@ Tudo fica no [`config.lua`](config.lua):
 | `Config.url` | `string` | — | Endereço do site que será aberto (com `https://`) |
 | `Config.command` | `string` | — | Comando para abrir, **sem a barra** (ex.: `"loja"` → `/loja`) |
 | `Config.key` | `string` | `""` | Tecla padrão (ex.: `"F7"`). `""` = sem tecla |
+| `Config.warnBlocked` | `boolean` | `true` | Avisa no console e na janela quando o site bloqueia iframe |
 | `Config.perms` | `table` | `{}` | Quem pode abrir (veja a tabela abaixo). Vazio = todo mundo |
 | `Config.title` | `string` | `""` | Texto do título no topo da janela |
 | `Config.highlight` | `string` | `""` | Parte do título pintada com a cor de destaque |
@@ -188,11 +189,11 @@ const nome = params.get('nome');
 ## 🗂️ Estrutura
 
 ```
-piercer_browser/
+piercer_webview/
 ├── fxmanifest.lua   # manifesto do resource (depende da framezero_bridge)
 ├── config.lua       # ⭐ o único arquivo que você precisa editar
 ├── client.lua       # comando, tecla, foco da NUI
-├── server.lua       # checagem de permissão + ID/nome do jogador
+├── server.lua       # permissão + ID/nome + preflight do site (iframe)
 └── nui/
     ├── index.html   # janela do navegador
     ├── script.js    # lógica da interface
@@ -221,17 +222,30 @@ SendNUIMessage("open") ──▶ nui/ abre o iframe com Config.url
 <details>
 <summary><b>"a resource framezero_bridge não está iniciada"</b></summary>
 
-A bridge precisa estar rodando antes do browser. Confira se:
+A bridge precisa estar rodando antes do resource. Confira se:
 - a pasta se chama exatamente `framezero_bridge`;
-- `ensure framezero_bridge` vem **antes** de `ensure piercer_browser` no `server.cfg`.
+- `ensure framezero_bridge` vem **antes** de `ensure piercer_webview` no `server.cfg`.
 </details>
 
 <details>
 <summary><b>A janela abre mas o site fica em branco / "recusou a conexão"</b></summary>
 
-O site bloqueia ser exibido dentro de iframes (cabeçalho `X-Frame-Options` ou `Content-Security-Policy: frame-ancestors`).
-Isso acontece com Google, YouTube (página normal), Instagram, bancos, etc. Não tem como contornar pelo resource:
-use um site que permita iframe ou, se o site for seu, libere o domínio `nui://` / `cfx-nui-*` nos cabeçalhos.
+O site recusa ser exibido dentro de iframes (cabeçalho `X-Frame-Options` ou `Content-Security-Policy: frame-ancestors`).
+Isso acontece com Google, YouTube (página normal), GitBook, Instagram, bancos, etc., e não é bug do resource:
+quem decide é o servidor do site, e nenhum atributo de `<iframe>` contorna isso.
+
+Com `Config.warnBlocked` ligado (padrão), o resource descobre isso ao iniciar: o console do servidor mostra
+`[piercer_webview] aviso: https://site.com bloqueia iframe (X-Frame-Options: SAMEORIGIN)` e a janela exibe o
+motivo com um botão **copiar link** — em vez de tela preta sem explicação.
+
+Se o site for seu, libere o iframe nos cabeçalhos:
+
+```
+Content-Security-Policy: frame-ancestors 'self' https://cfx-nui-piercer_webview
+```
+
+e **remova** o `X-Frame-Options` (o `ALLOW-FROM` não funciona mais no Chrome). O host `cfx-nui-<pasta>` segue o
+nome da pasta do resource: se você renomear a pasta, ajuste o valor aqui.
 
 > Dica: para vídeos do YouTube use o link de *embed* (`https://www.youtube.com/embed/ID`).
 </details>
@@ -239,7 +253,7 @@ use um site que permita iframe ou, se o site for seu, libere o domínio `nui://`
 <details>
 <summary><b>Digito o comando e nada acontece</b></summary>
 
-- Confira se a bridge e o browser iniciaram sem erro (F8 e console do servidor).
+- Confira se a bridge e o piercer_webview iniciaram sem erro (F8 e console do servidor).
 - Se você configurou `Config.perms`, verifique se o seu personagem tem uma delas (veja a tabela de permissões por framework).
 - O jogador precisa estar com o personagem carregado no framework.
 - Ligue `Config.Debug = true` no config da bridge para ver qual adaptador atendeu cada chamada.
@@ -256,7 +270,7 @@ O FiveM salva o `RegisterKeyMapping` por jogador na primeira vez. Depois disso, 
 <summary><b>Meu framework / notificação não é detectado</b></summary>
 
 Quem detecta é a bridge. No `config.lua` dela dá pra forçar o framework (`Config.Framework`) e a notificação (`Config.Notify`),
-ou sobrescrever qualquer função em `custom/server.lua`. Não precisa mexer no piercer_browser.
+ou sobrescrever qualquer função em `custom/server.lua`. Não precisa mexer no piercer_webview.
 </details>
 
 ## 💬 Suporte e comunidade
