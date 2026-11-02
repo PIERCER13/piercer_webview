@@ -1,10 +1,4 @@
 local opened = false
-
--- ── Modo DUI ──────────────────────────────────────────────────────────────────
--- Sites que recusam iframe (X-Frame-Options / CSP frame-ancestors) ficam pretos
--- na NUI. A DUI é um navegador separado que abre o site como página principal,
--- então esses cabeçalhos não se aplicam. A NUI deixa um "buraco" transparente
--- (#stage), a gente desenha a textura da DUI ali embaixo e repassa o mouse.
 local TXD = GetCurrentResourceName() .. "_dui"
 local txd = nil
 local texCount = 0
@@ -19,8 +13,6 @@ end
 local function drawDui()
     CreateThread(function()
         while opened and dui do
-            -- O fundo escurecido da NUI cobriria a textura, então no modo DUI
-            -- ele é transparente e o escurecimento é desenhado aqui.
             DrawRect(0.5, 0.5, 1.0, 1.0, 0, 0, 0, 140)
             local r = duiRect
             local cx, cy = r.x + r.w / 2, r.y + r.h / 2

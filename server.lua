@@ -1,9 +1,5 @@
--- Framework, permissão e notificação ficam com a framezero_bridge
--- (ESX, QBCore, Qbox, vRP, vRPex, Creative ou standalone).
 
--- ── Preflight: o site aceita ser aberto dentro de um iframe? ──────────────────
--- A NUI é um Chromium (CEF) e obedece X-Frame-Options e CSP frame-ancestors do
--- site. Quando o site bloqueia, o iframe fica preto e o jogador (e você) não
+-- Quando o site bloqueia, o iframe fica preto e o jogador (e você) não
 -- entende o motivo. Aqui a gente faz um GET em Config.url na inicialização,
 -- avisa no console e manda o motivo pra NUI mostrar um aviso com "copiar link".
 
@@ -14,7 +10,6 @@ local function log(fmt, ...)
     print(TAG .. fmt .. "^0")
 end
 
--- url = Config.url já corrigido · frameBlocked = recusa iframe (cliente usa DUI)
 local status = { checked = false, blocked = false, reason = nil, url = nil, frameBlocked = false }
 
 -- Links conhecidos que têm versão que aceita iframe:

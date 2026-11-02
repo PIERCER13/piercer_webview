@@ -114,7 +114,6 @@ button:hover { background: #262626; border-color: #4a4a4a; }
 
 .icon.close:hover { background: #3a3a3a; border-color: #5a5a5a; }
 
-/* Aviso de site que bloqueia iframe (preflight do server.lua) */
 .blocked {
     display: flex;
     align-items: center;
@@ -140,7 +139,6 @@ button:hover { background: #262626; border-color: #4a4a4a; }
 
 .blocked .chip { flex: 0 0 auto; border-color: #4a3a1a; background: #1a1408; }
 
-/* modo DUI: aviso informativo, não de erro */
 .blocked.info { background: #14202a; border-bottom-color: #1f3a4a; color: #9cc4dd; }
 .blocked.info strong { color: #cfe8f7; }
 .blocked.info #blockedwhy { color: #7fa3ba; }
@@ -153,8 +151,6 @@ iframe {
     background: #121212;
 }
 
-/* Modo DUI: o site é desenhado pelo jogo ATRÁS da NUI, então tudo que fica
-   por cima do #stage precisa ser transparente (o escurecimento vem do Lua). */
 #app.dui { background: transparent; }
 #app.dui .window { background: transparent; }
 

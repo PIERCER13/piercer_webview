@@ -21,7 +21,6 @@ function buildSrc(data) {
         if (data.name) u.searchParams.set('nome', data.name);
         return u.toString();
     } catch (err) {
-        // URL relativa/inválida (ex.: Config.url sem https://): usa como veio
         return data.url;
     }
 }
@@ -36,10 +35,6 @@ function copyText(text) {
     t.remove();
     return ok;
 }
-
-// ── Modo DUI ─────────────────────────────────────────────────────────────────
-// O client.lua desenha a DUI exatamente onde está o #stage; aqui a gente manda
-// a posição (0..1 da tela) e repassa o mouse em coordenadas 0..1 do #stage.
 
 function sendStage() {
     if (mode !== 'dui' || $('app').hidden) return;
@@ -65,7 +60,6 @@ const BUTTONS = ['left', 'middle', 'right'];
 let pendingMove = null;
 
 $('stage').addEventListener('mousemove', e => {
-    // junta os movimentos por frame pra não inundar o Lua de fetch
     const first = !pendingMove;
     pendingMove = stagePos(e);
     if (first) requestAnimationFrame(() => {
@@ -83,7 +77,6 @@ $('stage').addEventListener('mousedown', e => {
     post('duiMouse', { ...stagePos(e), type: 'down', button: BUTTONS[e.button] });
 });
 
-// no documento: soltar o botão fora do #stage (arrastando) também conta
 document.addEventListener('mouseup', e => {
     if (!pressed.delete(e.button)) return;
     post('duiMouse', { ...stagePos(e), type: 'up', button: BUTTONS[e.button] });
@@ -91,7 +84,6 @@ document.addEventListener('mouseup', e => {
 
 $('stage').addEventListener('wheel', e => {
     e.preventDefault();
-    // deltaMode 1 = linhas (≈ 40px cada)
     const k = e.deltaMode === 1 ? 40 : 1;
     post('duiWheel', { dy: e.deltaY * k, dx: e.deltaX * k });
 }, { passive: false });
@@ -99,8 +91,6 @@ $('stage').addEventListener('wheel', e => {
 $('stage').addEventListener('contextmenu', e => e.preventDefault());
 
 window.addEventListener('resize', sendStage);
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 function showNotice(data) {
     const dui = mode === 'dui';
@@ -112,7 +102,6 @@ function showNotice(data) {
         : 'Este site não permite ser aberto dentro do jogo.';
     $('blockedwhy').textContent = !dui && data.blocked ? `(${data.blocked})` : '';
     $('copyurl').textContent = 'copiar link';
-    // abre no navegador do Windows (função da própria NUI do FiveM)
     $('openext').hidden = typeof window.invokeNative !== 'function';
 }
 
@@ -133,7 +122,6 @@ function open(data) {
     const src = buildSrc(data);
 
     if (mode === 'dui') {
-        // a DUI é recriada a cada abertura (o Lua destrói ao fechar)
         currentSrc = src;
         $('frame').hidden = true;
         $('frame').src = 'about:blank';
@@ -150,8 +138,6 @@ function open(data) {
 
     $('app').hidden = false;
     $('close').focus();
-
-    // a janela entra com animação de escala: mede o #stage só depois dela
     if (mode === 'dui') setTimeout(sendStage, 220);
 }
 
