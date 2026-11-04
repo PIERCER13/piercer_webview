@@ -31,15 +31,11 @@ local function lowerKeys(headers)
     return out
 end
 
--- Retorna a lista do frame-ancestors quando ela NÃO libera a NUI do FiveM
--- (origem https://cfx-nui-<resource>). nil = libera / não tem a diretiva.
--- Obs.: "https:" sozinho não conta como liberado — o GitBook manda
--- "frame-ancestors https: ionic: capacitor:" e mesmo assim o CEF bloqueia.
 local function blockingFrameAncestors(csp)
     local list = string.match(string.lower(csp), "frame%-ancestors%s+([^;]+)")
     if not list then return nil end
-    if string.find(list, "%*") then return nil end           -- libera qualquer origem
-    if string.find(list, "cfx%-nui%-") then return nil end    -- libera a NUI do FiveM
+    if string.find(list, "%*") then return nil end       
+    if string.find(list, "cfx%-nui%-") then return nil end  
     return list
 end
 
