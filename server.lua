@@ -95,7 +95,6 @@ local function verify()
     end, "GET")
 end
 
--- Espera a bridge/framework subir antes de logar.
 CreateThread(function()
     Wait(1500)
     verify()
@@ -117,9 +116,6 @@ framezero.RegisterCallback(GetCurrentResourceName()..":open", function(source)
         end
     end
 
-    -- Uma tabela só: versões antigas da bridge entregam apenas o 1º retorno.
-    -- reason: motivo do aviso (nil = site ok / não verificado), pra NUI explicar
-    -- em vez de deixar a tela preta · frameBlocked: o cliente abre via DUI
     return {
         id = id,
         name = framezero.GetName(source) or "",
