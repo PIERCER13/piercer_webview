@@ -45,12 +45,10 @@ local function verify()
     if url ~= Config.url then
         log("link ajustado pra abrir no jogo: %s", url)
     end
-    -- no modo "auto" a checagem decide iframe x DUI, então roda sempre
+
     if Config.warnBlocked == false and (Config.mode == "iframe" or Config.mode == "dui") then return end
     if type(url) ~= "string" or url == "" then return end
 
-    -- "linkaqui", "meusite.com" (sem esquema): o iframe trata como caminho
-    -- relativo da NUI e não carrega nada. É o erro mais comum.
     if not string.match(url, "^https?://") then
         status = { checked = true, blocked = true, reason = "Config.url precisa começar com https://", url = url, frameBlocked = false }
         log("^3aviso^0: Config.url = \"%s\" não começa com http(s):// — o iframe não carrega", url)
@@ -72,7 +70,7 @@ local function verify()
 
         local h = lowerKeys(headers)
         local xfo = h["x-frame-options"]
-        local csp = h["content-security-policy"]   -- report-only não bloqueia, então ignora
+        local csp = h["content-security-policy"] 
         local reason
 
         if xfo and (string.lower(xfo):find("deny", 1, true) or string.lower(xfo):find("sameorigin", 1, true)) then
