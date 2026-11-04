@@ -112,7 +112,6 @@ end)
 RegisterNUICallback("duiWheel", function(data, cb)
     cb("ok")
     if not dui then return end
-    -- navegador: deltaY > 0 = descer · CEF: delta > 0 = subir
     SendDuiMouseWheel(dui, -math.floor(tonumber(data.dy) or 0), -math.floor(tonumber(data.dx) or 0))
 end)
 
