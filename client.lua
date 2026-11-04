@@ -28,7 +28,7 @@ end
 
 local function close()
     opened = false
-    destroyDui()   -- DUI aberta consome FPS mesmo sem aparecer
+    destroyDui() 
     SetNuiFocus(false, false)
     SendNUIMessage({ action = "close" })
 end
@@ -37,10 +37,7 @@ RegisterCommand(Config.command, function()
     if opened then return end
     opened = true
 
-    -- { id, name, reason, url, frameBlocked } ou false (sem permissão / sem personagem)
-    -- reason: motivo do aviso (nil = site ok ou ainda não verificado)
-    -- url: Config.url já corrigido (YouTube → embed, Google → igu=1)
-    -- frameBlocked: o site recusa iframe (dá pra abrir via DUI)
+
     local info = framezero.TriggerCallback(GetCurrentResourceName()..":open", 10000)
     if type(info) ~= "table" or not info.id then
         opened = false
