@@ -1,9 +1,3 @@
-
--- Quando o site bloqueia, o iframe fica preto e o jogador (e você) não
--- entende o motivo. Aqui a gente faz um GET em Config.url na inicialização,
--- avisa no console e manda o motivo pra NUI mostrar um aviso com "copiar link".
-
--- Log próprio: framezero.Log é interno da bridge, não existe na API exportada.
 local TAG = "^3[" .. GetCurrentResourceName() .. "]^0 "
 local function log(fmt, ...)
     if select("#", ...) > 0 then fmt = fmt:format(...) end
@@ -12,9 +6,6 @@ end
 
 local status = { checked = false, blocked = false, reason = nil, url = nil, frameBlocked = false }
 
--- Links conhecidos que têm versão que aceita iframe:
---   youtube.com/watch?v=ID · youtu.be/ID · youtube.com/shorts/ID → youtube.com/embed/ID
---   www.google.* (início/busca) → ?igu=1 (o Google libera iframe com isso)
 local function fixUrl(url)
     if Config.fixUrls == false or type(url) ~= "string" then return url end
 
