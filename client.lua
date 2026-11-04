@@ -75,15 +75,12 @@ RegisterNUICallback("close", function(_, cb)
     cb("ok")
 end)
 
--- A NUI manda a posição do #stage (0..1 da tela) e o tamanho em pixels.
--- Na primeira vez cria a DUI; depois só atualiza a posição (resize).
 RegisterNUICallback("duiStage", function(data, cb)
     cb("ok")
     if not opened then return end
     duiRect = { x = tonumber(data.x) or 0, y = tonumber(data.y) or 0, w = tonumber(data.w) or 1, h = tonumber(data.h) or 1 }
     if dui then return end
 
-    -- resolução da DUI = tamanho real do #stage, limitado a 1920 de largura
     local pw, ph = math.max(320, math.floor(tonumber(data.pw) or 1280)), math.max(240, math.floor(tonumber(data.ph) or 720))
     if pw > 1920 then ph, pw = math.floor(ph * 1920 / pw), 1920 end
     duiW, duiH = pw, ph
